@@ -28,7 +28,7 @@ import datetime
 import configparser
 import asyncio
 from shutil import copy
-from sys import platform, exit as shutdown
+from sys import platform
 
 import discord
 from discord.ext import commands, tasks
@@ -44,12 +44,12 @@ with open(f"{directory}/.version") as f:
 folder = f"{directory}/files"
 config = configparser.ConfigParser()
 config.read(f"{directory}/config.ini")
-logo = str(config.get("server", "logo"))
+logo = str(config.get("server", "logo", fallback="https://cdn.discordapp.com/attachments/671738683623473163/693451064904515645/spell_holy_weaponmastery.jpg"))
 TOKEN = str(config.get("server", "token"))
-botname = str(config.get("server", "name"))
-prefix = str(config.get("server", "prefix"))
+botname = str(config.get("server", "name", fallback="Reaction Light"))
+prefix = str(config.get("server", "prefix", fallback="rl!"))
 language = str(config.get("server", "language", fallback="en-gb"))
-botcolour = discord.Colour(int(config.get("server", "colour"), 16))
+botcolour = discord.Colour(int(config.get("server", "colour", fallback="0xffff00"), 16))
 system_channel = (
     int(config.get("server", "system_channel"))
     if config.get("server", "system_channel")
@@ -1412,7 +1412,7 @@ async def print_version(ctx):
 @bot.command(name="kill")
 async def kill(ctx):
     await ctx.send(response.get("shutdown"))
-    shutdown()  # sys.exit()
+    await bot.close()
 
 
 @commands.is_owner()
@@ -1421,7 +1421,7 @@ async def restart_cmd(ctx):
     if platform != "win32":
         restart()
         await ctx.send(response.get("restart"))
-        shutdown()  # sys.exit()
+        await bot.close()
 
     else:
         await ctx.send(response.get("windows-error"))
@@ -1441,7 +1441,7 @@ async def update(ctx):
         copy(db_file, f"{db_file}.bak")
         restart()
         await ctx.send(response.get("restart"))
-        shutdown()  # sys.exit()
+        await bot.close()
 
     else:
         await ctx.send(response.get("windows-error"))
